@@ -13,8 +13,7 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Yerel geliştirme için
-    'http://yourdomain.com', // GoDaddy'deki frontend domain'i (alan adını buraya ekle)
-    'https://your-frontend-app.onrender.com' // Render'daki frontend URL'si (eğer kullanıyorsan)
+    'https://canada-ankara.com/', // GoDaddy'deki frontend domain'i (alan adını buraya ekle)
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // İzin verilen HTTP metodları
   allowedHeaders: ['Content-Type', 'Authorization'], // İzin verilen başlıklar
