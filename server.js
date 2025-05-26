@@ -9,8 +9,20 @@ const connectDB = require('./config/db');
 dotenv.config();
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS ayarları
+const corsOptions = {
+  origin: [
+    'http://localhost:3000', // Yerel geliştirme için
+    'http://yourdomain.com', // GoDaddy'deki frontend domain'i (alan adını buraya ekle)
+    'https://your-frontend-app.onrender.com' // Render'daki frontend URL'si (eğer kullanıyorsan)
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // İzin verilen HTTP metodları
+  allowedHeaders: ['Content-Type', 'Authorization'], // İzin verilen başlıklar
+  credentials: true, // Kimlik doğrulama (ör. cookie) gerekiyorsa
+  optionsSuccessStatus: 200 // Eski tarayıcılar için
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Veritabanı bağlantısı
