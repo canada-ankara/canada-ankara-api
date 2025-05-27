@@ -80,6 +80,7 @@ const translations = {
     telegramEnabled: 'enabled',
     telegramDisabled: 'disabled',
         tokenRefreshFailed: 'Failed to refresh token',
+    turnstileVerificationFailed: 'Turnstile verification failed'
 
     
   },
@@ -147,6 +148,7 @@ const translations = {
     telegramEnabled: 'açık',
     telegramDisabled: 'kapalı',
         tokenRefreshFailed: 'Token yenileme başarısız',
+    turnstileVerificationFailed: 'Turnstile doğrulaması başarısız'
 
   },
   fr: {
@@ -213,6 +215,7 @@ const translations = {
     telegramEnabled: 'activées',
     telegramDisabled: 'désactivées',
         tokenRefreshFailed: 'Échec du rafraîchissement du jeton',
+    turnstileVerificationFailed: 'La vérification Turnstile a échoué'
 
   },
 };
@@ -337,6 +340,33 @@ async function sendTelegramNotification(guest) {
     }
   }
 }
+
+
+router.post('/verify-turnstile', async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.status(400).json({ messageKey: 'turnstileVerificationFailed', params: {} });
+  }
+  try {
+    const response = await axios.post(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      `secret=${encodeURIComponent(process.env.TURNSTILE_SECRET_KEY)}&response=${encodeURIComponent(token)}`,
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    );
+    if (response.data.success) {
+      res.status(200).json({ success: true });
+    } else {
+      res.status(400).json({ messageKey: 'turnstileVerificationFailed', params: {}, error: response.data['error-codes'] });
+    }
+  } catch (error) {
+    console.error('Turnstile verification error:', error);
+    res.status(500).json({ messageKey: 'turnstileVerificationFailed', params: {}, error: error.message });
+  }
+});
+
+
 
 // Telegram durumu alma
 router.get('/telegram-status', async (req, res) => {
