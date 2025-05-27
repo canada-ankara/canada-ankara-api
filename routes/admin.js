@@ -343,10 +343,6 @@ async function sendTelegramNotification(guest) {
 
 
 router.post('/verify-turnstile', async (req, res) => {
-  const { token } = req.body;
-  if (!token) {
-    return res.status(400).json({ messageKey: 'turnstileVerificationFailed', params: {} });
-  }
   try {
     const response = await axios.post(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
