@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Guest = require('../models/Guest');
-const axios = require('axios');
 const generateQrId = require('../utils/generateQrId');
 const mongoose = require('mongoose');
 const path = require('path');
@@ -64,39 +63,6 @@ const restrictToAdminOrGuestEditor = (req, res, next) => {
   } catch (error) {
     console.error('JWT doğrulama hatası:', error.message);
     res.status(401).json({ message: 'Geçersiz token', messageKey: 'invalidToken' });
-  }
-};
-
-// reCAPTCHA doğrulama middleware
-const verifyRecaptcha = async (req, res, next) => {
-  const { recaptchaToken } = req.body;
-  if (!recaptchaToken) {
-    console.error('reCAPTCHA token eksik');
-    return res.status(400).json({ message: 'reCAPTCHA token eksik', messageKey: 'noRecaptchaToken' });
-  }
-
-  try {
-    const response = await axios.post(
-      `https://www.google.com/recaptcha/api/siteverify`,
-      null,
-      {
-        params: {
-          secret: process.env.RECAPTCHA_SECRET_KEY,
-          response: recaptchaToken,
-        },
-      }
-    );
-
-    const { success, score } = response.data;
-    if (!success || score < 0.5) {
-      console.error('reCAPTCHA doğrulaması başarısız:', { success, score });
-      return res.status(400).json({ message: 'reCAPTCHA doğrulaması başarısız', messageKey: 'recaptchaFailed' });
-    }
-    console.log('reCAPTCHA doğrulama başarılı:', { success, score });
-    next();
-  } catch (error) {
-    console.error('reCAPTCHA doğrulama hatası:', error.message);
-    return res.status(500).json({ message: 'reCAPTCHA doğrulama hatası', error: error.message, messageKey: 'recaptchaError' });
   }
 };
 
@@ -176,10 +142,9 @@ router.get('/guest/:qrId', async (req, res) => {
 });
 
 // RSVP işlemi
-router.post('/guest/:qrId', verifyRecaptcha, async (req, res) => {
-  const { willAttend } = req.body;
-
+router.post('/guest/:qrId', async (req, res) => {
   try {
+    const { willAttend } = req.body;
     const guest = await Guest.findOne({ qrId: req.params.qrId });
     if (!guest) {
       console.error('Davetli bulunamadı, qrId:', req.params.qrId);
@@ -213,7 +178,7 @@ router.post('/guest/:qrId', verifyRecaptcha, async (req, res) => {
 });
 
 // PlusOne ekleme
-router.post('/add-plusone/:qrId', verifyRecaptcha, async (req, res) => {
+router.post('/add-plusone/:qrId', async (req, res) => {
   const { firstName, lastName, email } = req.body;
 
   try {
@@ -307,7 +272,7 @@ router.post('/add-plusone/:qrId', verifyRecaptcha, async (req, res) => {
 });
 
 // RSVP işlemi
-router.post('/rsvp/:qrId', verifyRecaptcha, async (req, res) => {
+router.post('/rsvp/:qrId', async (req, res) => {
   try {
     const { willAttend } = req.body;
     const { qrId } = req.params;
